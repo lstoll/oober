@@ -1,7 +1,9 @@
 .PHONY: clean upload
 
+SOURCES := $(wildcard src/*)
 
-.pioenvs/nanoatmega328/firmware.hex: src/main.ino
+
+.pioenvs/nanoatmega328/firmware.hex: $(SOURCES)
 	platformio run
 
 clean:
