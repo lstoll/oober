@@ -31,11 +31,14 @@ typedef struct {
 } GSM_LOCATION;
 
 class CGPRS_SIM800 {
-    SoftwareSerial* serial;
 public:
-    CGPRS_SIM800():httpState(HTTP_DISABLED) {}
+    CGPRS_SIM800(SoftwareSerial& s, byte rp) :
+        httpState(HTTP_DISABLED),
+	serial(s),
+	resetPin(rp)
+        {}
     // initialize the module
-    bool init(byte txPin, byte rxPin, byte resetPin);
+    bool init();
     // setup network
     byte setup(const char* apn);
     // get network operator name
@@ -72,7 +75,7 @@ public:
     // check if there is available serial data
     bool available()
     {
-      return serial->available();
+      return serial.available();
     }
     char buffer[256];
     byte httpState;
@@ -81,4 +84,7 @@ private:
     void purgeSerial();
     byte m_bytesRecv;
     uint32_t m_checkTimer;
+private:
+    SoftwareSerial& serial;
+    byte resetPin;
 };
