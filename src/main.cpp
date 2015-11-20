@@ -1,20 +1,17 @@
 #include <Arduino.h>
-#include <SIM800.h>
 #include <Adafruit_HDC1000.h>
+#include <Adafruit_FONA.h>
 #include <Wire.h>
 
 #include "config.h"
 
-#define con Serial
-
 SoftwareSerial gsmSerial(gsmTxPin, gsmRxPin);
-CGPRS_SIM800 gsm(gsmSerial, gsmResetPin);
+Adafruit_FONA fona(gsmResetPin);
 Adafruit_HDC1000 hdc;
 
 void setup() {
   // Console
-  con.begin(9600);
-  while (!con);
+  Serial.begin(115200);
 
   // Relay
   pinMode(relayPin, OUTPUT);
@@ -22,21 +19,26 @@ void setup() {
   // hum interface
   Wire.begin();
 
-  // Start modem
-  con.print("Resetting...");
-  while (!gsm.init());
-  con.println("OK");
+  // Start modem serial
+  gsmSerial.begin(9600);
 
-  delay(3000);
+  // start modem
+  Serial.print("Starting modem...");
+  if (! fona.begin(gsmSerial)) {
+    Serial.println(F("Couldn't find Modem"));
+  } else {
+    Serial.println("OK");
+  }
 
   // Start humid sensor
   if (!hdc.begin()) {
-    con.println("Couldn't find sensor!");
+    Serial.println("Couldn't find sensor!");
   }
 }
 
 void loop() {
-  if (gsm.getOperatorName()) {
+  // https://github.com/adafruit/Open-Sesame/blob/master/OpenSesame.ino
+  /* if (gsm.getOperatorName()) {
     con.print("Operator:");
     con.println(gsm.buffer);
   }
@@ -50,7 +52,7 @@ void loop() {
   con.println(hdc.readHumidity());
   con.print("temp: ");
   con.println(hdc.readTemperature());
-  delay(3000);
+  delay(3000);*/
   /*if(started) {
     //Read if there are messages on SIM card and print them.
     if(gsm.readSMS(smsbuffer, 160, n, 20)) {
