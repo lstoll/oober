@@ -1,0 +1,5 @@
+const int gsmTxPin = 4;
+const int gsmRxPin = 5;
+const int gsmResetPin = 6;
+
+const int relayPin = 7;

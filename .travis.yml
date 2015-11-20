@@ -2,4 +2,5 @@ language: python
 python:
   - "2.7"
 install: "pip install platformio"
+before_script: cp src/config.h.example src/config.h
 script: make
