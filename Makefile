@@ -7,7 +7,7 @@ SOURCES := $(wildcard src/*)
 	platformio run
 
 clean:
-	rm -rf .pioenvs
+	platformio run --target clean
 
 upload: .pioenvs/nanoatmega328/firmware.hex
 	platformio run -t upload
