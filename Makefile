@@ -1,6 +1,6 @@
 .PHONY: clean upload
 
-SOURCES := $(wildcard src/*.cpp) $(wildcard src/*.h)
+SOURCES := $(wildcard src/*.cpp) $(wildcard src/*.h) $(shell find lib -type f -name *.h) $(shell find lib -type f -name *.cpp)
 
 
 .pioenvs/nanoatmega328/firmware.hex: $(SOURCES)
