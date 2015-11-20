@@ -6,12 +6,7 @@
 *************************************************************************/
 
 #include <Arduino.h>
-
-// change this to the pin connect with SIM800 reset pin
-#define SIM800_RESET_PIN 7
-
-// change this to the serial UART which SIM800 is attached to
-#define SIM_SERIAL Serial1
+#include <SoftwareSerial.h>
 
 // define DEBUG to one serial UART to enable debug information output
 //#define DEBUG Serial
@@ -36,10 +31,11 @@ typedef struct {
 } GSM_LOCATION;
 
 class CGPRS_SIM800 {
+    SoftwareSerial* serial;
 public:
     CGPRS_SIM800():httpState(HTTP_DISABLED) {}
     // initialize the module
-    bool init();
+    bool init(byte txPin, byte rxPin, byte resetPin);
     // setup network
     byte setup(const char* apn);
     // get network operator name
@@ -76,7 +72,7 @@ public:
     // check if there is available serial data
     bool available()
     {
-      return SIM_SERIAL.available();
+      return serial->available();
     }
     char buffer[256];
     byte httpState;
