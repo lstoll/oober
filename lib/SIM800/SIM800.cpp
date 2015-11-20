@@ -10,7 +10,7 @@
 bool CGPRS_SIM800::init(byte txPin, byte rxPin, byte resetPin)
 {
     serial = new SoftwareSerial(txPin, rxPin);
-    serial->begin(115200);
+    serial->begin(9600);
     pinMode(resetPin, OUTPUT);
     digitalWrite(resetPin, HIGH);
     delay(10);
