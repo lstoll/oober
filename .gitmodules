@@ -1,3 +1,6 @@
 [submodule "lib/Adafruit_HDC1000_Library"]
 	path = lib/Adafruit_HDC1000_Library
 	url = https://github.com/adafruit/Adafruit_HDC1000_Library
+[submodule "lib/Adafruit_FONA_Library"]
+	path = lib/Adafruit_FONA_Library
+	url = https://github.com/adafruit/Adafruit_FONA_Library
