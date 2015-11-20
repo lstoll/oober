@@ -1,6 +1,6 @@
 .PHONY: clean upload
 
-SOURCES := $(wildcard src/*)
+SOURCES := $(wildcard src/*.cpp) $(wildcard src/*.h)
 
 
 .pioenvs/nanoatmega328/firmware.hex: $(SOURCES)
