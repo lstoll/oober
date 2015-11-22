@@ -17,14 +17,21 @@ void powerOff();
 void powerOn();
 
 void setup() {
+  // On board light
+  pinMode(13, OUTPUT);
+
+  for (int i = 0; i<5; i++) {
+    digitalWrite(13, HIGH);
+    delay(100);
+    digitalWrite(13, LOW);
+    delay(100);
+  }
+
   // Console
   Serial.begin(115200);
 
   // Relay
   pinMode(relayPin, OUTPUT);
-
-  // On board light
-  pinMode(13, OUTPUT);
 
   // hum interface
   Wire.begin();
