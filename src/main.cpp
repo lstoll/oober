@@ -2,6 +2,7 @@
 #include <Adafruit_HDC1000.h>
 #include <Adafruit_FONA.h>
 #include <Wire.h>
+#include <Adafruit_SleepyDog.h>
 
 #include "config.h"
 
@@ -13,10 +14,15 @@ Adafruit_HDC1000 hdc;
 char replybuffer[160];
 char inbuffer[255];
 
+bool tempAlerted = false;
+
 void powerOff();
 void powerOn();
 
 void setup() {
+  // // should be 8000ms
+  Watchdog.enable();
+
   // On board light
   pinMode(13, OUTPUT);
 
@@ -39,47 +45,79 @@ void setup() {
   // Start modem serial
   gsmSerial.begin(9600);
 
+  Watchdog.reset();
+
   // start modem
-  Serial.print("Starting modem...");
+  Serial.print(F("Starting modem..."));
   if (! fona.begin(gsmSerial)) {
     Serial.println(F("Couldn't find Modem"));
   } else {
-    Serial.println("OK");
+    Serial.println(F("OK"));
   }
+  Watchdog.reset();
 
   // Start humid sensor
-  Serial.print("Starting humidity sensor...");
+  Serial.print(F("Starting humidity sensor..."));
   if (!hdc.begin()) {
-    Serial.println("Couldn't find sensor!");
+    Serial.println(F("Couldn't find sensor!"));
   } else {
-    Serial.println("OK");
+    Serial.println(F("OK"));
   }
 
   // Flag that we're ready
   digitalWrite(13, HIGH);
+  Watchdog.reset();
 }
 
 void loop() {
+  Watchdog.reset();
+
   digitalWrite(13, LOW);
   delay(50);
   digitalWrite(13, HIGH);
 
-  Serial.print("humid: ");
-  Serial.println(hdc.readHumidity());
-  Serial.print("temp: ");
-  Serial.println(hdc.readTemperature());
+  float humid = hdc.readHumidity();
+  float temp = hdc.readTemperature();
+
+  Serial.print(F("humid: "));
+  Serial.println(humid);
+  Serial.print(F("temp: "));
+  Serial.println(temp);
+
+  Watchdog.reset();
 
   uint8_t networkStatus = fona.getNetworkStatus();
   if (networkStatus != 1 && networkStatus != 5) {
-    Serial.println("Waiting for cell connection");
+    Serial.print(F("Waiting for cell connection, status: "));
+    Serial.println(networkStatus);
+    Watchdog.reset();
     delay(2000);
     return;
   } else {
-    Serial.print("Signal strength: ");
+    Serial.print(F("Signal strength: "));
     Serial.println(fona.getRSSI());
+
+    if (tempAlerted && temp > (alertAtTemp + 2.5)) {
+      // reset the alert, we're above the temp by far enough that things are improved
+      Serial.println(F("Temp raised above threshold, resetting alert"));
+      tempAlerted = false;
+    }  else if (!tempAlerted && temp < alertAtTemp) {
+      // ruh roh
+      Serial.println(F("Temp dropped below threshold, alerting"));
+      tempAlerted = true;
+
+      char temp_temp[6];
+      dtostrf(temp, 4, 2, temp_temp);
+      sprintf(replybuffer, "Temperature is below threshold. temp: %s", temp_temp);
+      fona.sendSMS(alertNumber, replybuffer);
+    }
+
+    Watchdog.reset();
+
     int8_t smsnum = fona.getNumSMS();
     if (smsnum < 0) {
       Serial.println(F("Could not read # SMS"));
+      Watchdog.reset();
       delay(2000);
       return;
     } else {
@@ -88,6 +126,7 @@ void loop() {
     }
 
     if (smsnum == 0) {
+      Watchdog.reset();
       delay(5000);
       return;
     }
@@ -95,6 +134,8 @@ void loop() {
      // there's an SMS!
     uint8_t n = 1;
     while (true) {
+      Watchdog.reset();
+
       uint16_t smslen;
       char sender[25];
 
@@ -112,6 +153,8 @@ void loop() {
 	sender[0] = 0;
       }
 
+      Watchdog.reset();
+
       Serial.print(F("***** SMS #")); Serial.print(n);
       Serial.print(" ("); Serial.print(len); Serial.println(F(") bytes *****"));
       Serial.println(inbuffer);
@@ -120,7 +163,7 @@ void loop() {
 
       if (strcasecmp(inbuffer, "temp") == 0) {
 	// what's it like inside.
-	Serial.println("Sending environment info");
+	Serial.println(F("Sending environment info"));
 	char temp_temp[6];
 	char humid_temp[6];
 	dtostrf(hdc.readTemperature(), 4, 2, temp_temp);
@@ -129,27 +172,33 @@ void loop() {
 	fona.sendSMS(sender, replybuffer);
       }
       if (strcasecmp(inbuffer, "power off") == 0) {
-	Serial.println("Powering off");
+	Serial.println(F("Powering off"));
 	powerOff();
 	fona.sendSMS(sender, "Powered off");
       }
       if (strcasecmp(inbuffer, "power on") == 0) {
-	Serial.println("Powering on");
+	Serial.println(F("Powering on"));
 	powerOn();
 	fona.sendSMS(sender, "Powered on");
       }
       if (strcasecmp(inbuffer, "power cycle") == 0) {
-	Serial.println("Power cycling");
+	Serial.println(F("Power cycling"));
 	powerOff();
+	Watchdog.disable();
 	delay(10000);
+	Watchdog.enable();
 	powerOn();
 	fona.sendSMS(sender, "Power cycled");
       }
+
+      Watchdog.reset();
 
       delay(3000);
       break;
     }
     fona.deleteSMS(n);
+
+    Watchdog.reset();
 
     delay(2000);
     return;
