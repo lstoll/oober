@@ -10,4 +10,4 @@ clean:
 	platformio run --target clean
 
 upload: .pioenvs/nanoatmega328/firmware.hex
-	platformio run -t upload
+	platformio run -t upload --upload-port $(UPLOAD_PORT)
