@@ -4,3 +4,6 @@
 [submodule "lib/Adafruit_FONA_Library"]
 	path = lib/Adafruit_FONA_Library
 	url = https://github.com/adafruit/Adafruit_FONA_Library
+[submodule "lib/Adafruit_SleepyDog"]
+	path = lib/Adafruit_SleepyDog
+	url = https://github.com/adafruit/Adafruit_SleepyDog
