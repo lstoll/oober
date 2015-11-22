@@ -3,3 +3,6 @@ const int gsmRxPin = 5;
 const int gsmResetPin = 6;
 
 const int relayPin = 7;
+
+char alertNumber[] = "+123456789";
+const float alertAtTemp = 7.5;
